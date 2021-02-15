@@ -1,0 +1,14 @@
+#! /usr/bin/env sh
+
+deezertrack=$1
+artist=$2
+title=$3
+[ -z $artist ] && read -p 'Track to download (number after track/ in Deezer url): ' deezertrack || echo "Deezer track: $deezertrack"
+[ -z $artist ] && read -p 'Artist (filename): ' artist || echo "Artist (filename): $artist"
+[ -z $title ] && read -p 'Track name (filename): ' title || echo "Track title (filename): $title"
+echo "Downloading track #$deezertrack..."
+filepath=$(echo "$(deemix "https://deezer.com/track/$deezertrack" 2>&1)" | grep home)
+echo "File downloaded." 
+echo "Converting and copying in backup songs..."
+ffmpeg -y -i "$filepath" -metadata deezertrack="$deezertrack" -c:a libopus -b:a 152k "$HOME/backup-songs/$artist-$title.opus" 2>/dev/null
+echo "Done!"

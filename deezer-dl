@@ -4,48 +4,57 @@
 (import subprocess)
 (import os)
 
-(setv home (.getenv os "HOME"))
-
 ;; Define arguments and parse them
 
-(setv parser (.ArgumentParser argparse))
-(.add_argument parser
-    "deezertrack" 
-    :help "Deezer track number")
-(.add_argument parser
-    "filename" 
-    :help "Output filename (without extension). Example: muse-starlight")
-(setv args (.parse_args parser))
+(setv args 
+    (.parse_args
+        (doto (.ArgumentParser argparse)
+              (.add_argument
+               "deezertrack" 
+               :help "Deezer track number")
+              (.add_argument 
+               "filename" 
+               :help "Output filename (without extension). Example: muse-starlight"))))
 
 ;; Script
+;; Download the track from Deezer
 
 (print f"Downloading #{(. args deezertrack)} from Deezer...")
-(setv deemix-result (.run subprocess 
-                            ["deemix" f"https://deezer.com/track/{(. args deezertrack)}"] 
-                            :capture_output True))
-(setv file-location (some (fn [x] (if (in "/home" x) x))
-                          (-> (. deemix-result stderr)
-                              (.decode)
-                              (.split "\n"))))
+(setv 
+    deemix-result (.run subprocess 
+                        ["deemix" f"https://deezer.com/track/{(. args deezertrack)}"] 
+                        :capture_output True)
+    file-location (first (filter (fn [x] (in "/home" x))
+                                 (-> (. deemix-result stderr)
+                                     (.decode)
+                                     (.split "\n")))))
 (print f"Downloaded in {file-location}.")
 
+;; Convert it into opus format
+
 (print "Converting and copying in backup songs...")
-(setv opus-location f"{home}/backup-songs/{(. args filename)}.opus")
-(setv ffmpeg-result (.run subprocess
-                            ["ffmpeg"
-                             "-y" 
-                             "-i"
-                             file-location
-                             "-metadata"
-                             f"deezertrack={(. args deezertrack)}"
-                             "-c:a" 
-                             "libopus" 
-                             "-b:a"
-                             "152k"
-                             opus-location]
-                            :capture_output True))
-(print f"File converted and copied at {opus-location}.")
-(print "Removing previously downloaded file...")
+(setv home (.getenv os "HOME")
+      opus-location f"{home}/backup-songs/{(. args filename)}.opus"
+      ffmpeg-result (.run subprocess
+                          ["ffmpeg"
+                           "-y" 
+                           "-i"
+                           file-location
+                           "-metadata"
+                           f"deezertrack={(. args deezertrack)}"
+                           "-c:a" 
+                           "libopus" 
+                           "-b:a"
+                           "152k"
+                           opus-location]
+                          :capture_output True))
+(print f"File converted and copied at {opus-location}."
+        "Removing previously downloaded file..."
+        :sep "\n")
+
+;; Cleanup
+
 (.system os f"rm \"{file-location}\"")
-(print "File removed.")
-(print "Done!")
+(print "File removed."
+       "Done!"
+       :sep "\n")

@@ -1,0 +1,11 @@
+#!/usr/bin/env hy
+
+(import sys
+        os)
+
+(setv home-dir (.getenv os "HOME"))
+(doto (. sys path)
+      (.append f"{home-dir}/Projets/panoramix"))
+
+(import [panoramix [panoramix]])
+(panoramix)

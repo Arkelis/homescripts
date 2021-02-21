@@ -1,40 +1,41 @@
 #! /usr/bin/env hy
 
-(import argparse)
-(import subprocess)
-(import os)
+(import argparse
+        subprocess
+        os)
 
 ;; Define arguments and parse them
 
-(setv args 
-    (.parse_args
-        (doto (.ArgumentParser argparse)
-              (.add_argument
-               "deezertrack" 
-               :help "Deezer track number")
-              (.add_argument 
-               "filename" 
-               :help "Output filename (without extension). Example: muse-starlight"))))
+(setv args (.parse_args 
+             (doto (.ArgumentParser argparse)
+                   (.add_argument
+                    "deezertrack" 
+                    :help "Deezer track number")
+                   (.add_argument 
+                    "filename" 
+                    :help "Output filename (without extension).
+                           Example: muse-starlight"))))
 
 ;; Script
 ;; Download the track from Deezer
 
 (print f"Downloading #{(. args deezertrack)} from Deezer...")
 (setv 
-    deemix-result (.run subprocess 
-                        ["deemix" f"https://deezer.com/track/{(. args deezertrack)}"] 
-                        :capture_output True)
-    file-location (first (filter (fn [x] (in "/home" x))
-                                 (-> (. deemix-result stderr)
-                                     (.decode)
-                                     (.split "\n")))))
+  deemix-result (.run subprocess 
+                      ["deemix" 
+                       f"https://deezer.com/track/{(. args deezertrack)}"] 
+                      :capture_output True)
+  file-location (first (filter (fn [x] (in "/home" x))
+                               (-> (. deemix-result stderr)
+                                   (.decode)
+                                   (.split "\n")))))
 (print f"Downloaded in {file-location}.")
 
 ;; Convert it into opus format
 
 (print "Converting and copying in backup songs...")
-(setv home (.getenv os "HOME")
-      opus-location f"{home}/backup-songs/{(. args filename)}.opus"
+(setv home-dir (.getenv os "HOME")
+      opus-location f"{home-dir}/backup-songs/{(. args filename)}.opus"
       ffmpeg-result (.run subprocess
                           ["ffmpeg"
                            "-y" 
@@ -49,8 +50,8 @@
                            opus-location]
                           :capture_output True))
 (print f"File converted and copied at {opus-location}."
-        "Removing previously downloaded file..."
-        :sep "\n")
+      "Removing previously downloaded file..."
+      :sep "\n")
 
 ;; Cleanup
 

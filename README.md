@@ -1,3 +1,3 @@
-# Some scripts
+# Scripts maison
 
-Using [Hy](https://github.com/hylang/hy) for fun and to learn Lisp.
+Scripts écrits en [Hy](https://github.com/hylang/hy), un super Lisp pour Python.

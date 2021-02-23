@@ -1,5 +1,8 @@
 #!/usr/bin/env hy
 
+;; Point d'entrée pour Panoramix
+;; Voir https://github.com/Arkelis/panoramix
+
 (import sys
         os)
 
@@ -7,5 +10,5 @@
 (doto (. sys path)
       (.append f"{home-dir}/Projets/panoramix"))
 
-(import [panoramix [panoramix]])
+(import [panoramix.panoramix [panoramix]])
 (panoramix)
